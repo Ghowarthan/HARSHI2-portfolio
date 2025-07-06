@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Harshitha Vatturi - 3D Portfolio</title>
+    
+    <!-- TailwindCSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Three.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    
+    <!-- GSAP -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    
+    <!-- Custom Styles -->
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            overflow-x: hidden;
+        }
+        
+        .gradient-text {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+        }
+        
+        .circuit-bg {
+            background-image: 
+                radial-gradient(circle at 25% 25%, rgba(102, 126, 234, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 75% 75%, rgba(118, 75, 162, 0.1) 0%, transparent 50%);
+        }
+        
+        .typewriter {
+            overflow: hidden;
+            border-right: 2px solid #667eea;
+            white-space: nowrap;
+            animation: typing 3.5s steps(40, end), blink-caret 0.75s step-end infinite;
+        }
+        
+        @keyframes typing {
+            from { width: 0; }
+            to { width: 100%; }
+        }
+        
+        @keyframes blink-caret {
+            from, to { border-color: transparent; }
+            50% { border-color: #667eea; }
+        }
+        
+        .floating {
+            animation: float 6s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+        
+        .skill-card {
+            transition: all 0.3s ease;
+        }
+        
+        .skill-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+        
+        .project-card {
+            transition: all 0.3s ease;
+        }
+        
+        .project-card:hover {
+            transform: scale(1.05);
+        }
+        
+        #canvas-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+        
+        .section {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+        
+        .nav-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: rgba(102, 126, 234, 0.3);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .nav-dot.active {
+            background: #667eea;
+            transform: scale(1.5);
+        }
+        
+        @media (max-width: 768px) {
+            .section {
+                padding: 1rem;
+                min-height: auto;
+                padding-top: 80px;
+                padding-bottom: 80px;
+            }
+            
+            .nav-dot {
+                width: 10px;
+                height: 10px;
+            }
+            
+            .nav-dot.active {
+                transform: scale(1.3);
+            }
+            
+            .typewriter {
+                font-size: 2.5rem !important;
+                line-height: 1.2;
+            }
+            
+            .glass-effect {
+                backdrop-filter: blur(5px);
+            }
+            
+            .skill-card, .project-card {
+                margin-bottom: 1rem;
+            }
+            
+            .flex.space-x-4 {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .flex.space-x-4 > * {
+                margin: 0;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .section {
+                padding: 0.5rem;
+                padding-top: 60px;
+                padding-bottom: 60px;
+            }
+            
+            .nav-dot {
+                width: 8px;
+                height: 8px;
+            }
+            
+            .typewriter {
+                font-size: 2rem !important;
+            }
+            
+            .text-6xl {
+                font-size: 2.5rem;
+            }
+            
+            .text-4xl {
+                font-size: 1.75rem;
+            }
+            
+            .text-xl {
+                font-size: 1rem;
+            }
+            
+            .grid.grid-cols-2 {
+                grid-template-columns: 1fr;
+            }
+            
+            .skill-card, .project-card {
+                padding: 1rem;
+            }
+            
+            .flex.flex-wrap {
+                gap: 0.5rem;
+            }
+            
+            .flex.flex-wrap > * {
+                font-size: 0.75rem;
+                padding: 0.25rem 0.5rem;
+            }
+        }
+        
+        /* Touch-friendly improvements */
+        @media (hover: none) and (pointer: coarse) {
+            .nav-dot {
+                min-width: 24px;
+                min-height: 24px;
+            }
+            
+            button, .skill-card, .project-card {
+                min-height: 44px;
+            }
+            
+            .mobile-menu-btn {
+                min-width: 44px;
+                min-height: 44px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 3D Canvas Container -->
+    <div id="canvas-container"></div>
+    
+    <!-- Mobile Menu Button -->
+    <div class="fixed top-4 right-4 z-50 md:hidden">
+        <button id="mobile-menu-btn" class="p-2 glass-effect rounded-lg">
+            <svg class="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+            </svg>
+        </button>
+    </div>
+    
+    <!-- Mobile Menu -->
+    <div id="mobile-menu" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden md:hidden">
+        <div class="absolute top-0 right-0 h-full w-64 glass-effect p-6">
+            <div class="flex justify-end mb-8">
+                <button id="close-menu" class="p-2 glass-effect rounded-lg">
+                    <svg class="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            <nav class="space-y-4">
+                <a href="#home" class="block py-3 px-4 glass-effect rounded-lg text-gray-700 hover:bg-white hover:bg-opacity-20 transition-all duration-300">Home</a>
+                <a href="#about" class="block py-3 px-4 glass-effect rounded-lg text-gray-700 hover:bg-white hover:bg-opacity-20 transition-all duration-300">About</a>
+                <a href="#skills" class="block py-3 px-4 glass-effect rounded-lg text-gray-700 hover:bg-white hover:bg-opacity-20 transition-all duration-300">Skills</a>
+                <a href="#projects" class="block py-3 px-4 glass-effect rounded-lg text-gray-700 hover:bg-white hover:bg-opacity-20 transition-all duration-300">Projects</a>
+                <a href="#experience" class="block py-3 px-4 glass-effect rounded-lg text-gray-700 hover:bg-white hover:bg-opacity-20 transition-all duration-300">Experience</a>
+                <a href="#publications" class="block py-3 px-4 glass-effect rounded-lg text-gray-700 hover:bg-white hover:bg-opacity-20 transition-all duration-300">Publications</a>
+                <a href="#contact" class="block py-3 px-4 glass-effect rounded-lg text-gray-700 hover:bg-white hover:bg-opacity-20 transition-all duration-300">Contact</a>
+            </nav>
+        </div>
+    </div>
+    
+    <!-- Navigation Dots (Desktop) -->
+    <div class="fixed right-4 md:right-8 top-1/2 transform -translate-y-1/2 z-50 space-y-2 md:space-y-4 hidden md:block">
+        <div class="nav-dot active" data-section="home" title="Home"></div>
+        <div class="nav-dot" data-section="about" title="About"></div>
+        <div class="nav-dot" data-section="skills" title="Skills"></div>
+        <div class="nav-dot" data-section="projects" title="Projects"></div>
+        <div class="nav-dot" data-section="experience" title="Experience"></div>
+        <div class="nav-dot" data-section="publications" title="Publications"></div>
+        <div class="nav-dot" data-section="contact" title="Contact"></div>
+    </div>
+    
+    <!-- Home Section -->
+    <section id="home" class="section">
+        <div class="text-center max-w-4xl mx-auto px-4">
+            <div class="mb-8">
+                <h1 class="text-4xl sm:text-6xl md:text-8xl font-bold gradient-text mb-4 typewriter">
+                    Welcome
+                </h1>
+                <h2 class="text-2xl sm:text-4xl md:text-6xl font-bold text-gray-800 mb-4">
+                    I'm <span class="gradient-text">Harshitha Vatturi</span>
+                </h2>
+                <p class="text-lg sm:text-xl md:text-2xl text-gray-600 mb-8">
+                    Computer Science Engineering Student • UI/UX Designer • Kotlin Developer
+                </p>
+                <div class="flex flex-wrap justify-center gap-2 sm:gap-4 mb-8">
+                    <span class="px-3 sm:px-4 py-2 glass-effect rounded-full text-gray-700 text-sm sm:text-base">UI/UX Designer</span>
+                    <span class="px-3 sm:px-4 py-2 glass-effect rounded-full text-gray-700 text-sm sm:text-base">Kotlin Developer</span>
+                    <span class="px-3 sm:px-4 py-2 glass-effect rounded-full text-gray-700 text-sm sm:text-base">IEEE Published Author</span>
+                </div>
+            </div>
+            <div class="flex flex-col sm:flex-row justify-center gap-4">
+                <button class="px-6 sm:px-8 py-3 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-full hover:shadow-lg transition-all duration-300 text-sm sm:text-base">
+                    View Projects
+                </button>
+                <a href="/static/resume.pdf" download class="px-6 sm:px-8 py-3 glass-effect text-gray-700 rounded-full hover:shadow-lg transition-all duration-300 text-sm sm:text-base block text-center">Download Resume</a>
+            </div>
+        </div>
+    </section>
+    
+    <!-- About Section -->
+    <section id="about" class="section">
+        <div class="max-w-6xl mx-auto px-4">
+            <div class="grid md:grid-cols-2 gap-8 md:gap-12 items-center">
+                <div class="space-y-6 order-2 md:order-1">
+                    <h2 class="text-3xl sm:text-4xl font-bold gradient-text mb-6">About Me</h2>
+                    <p class="text-base sm:text-lg text-gray-700 leading-relaxed">
+                        I'm a passionate Computer Science Engineering Student with a GPA of 8.8/10, currently pursuing my degree from 2021-2025. 
+                        My journey in technology is driven by a deep fascination with UI/UX design, mobile development, and IoT.
+                    </p>
+                    <p class="text-base sm:text-lg text-gray-700 leading-relaxed">
+                        As a UI/UX Designer and Kotlin Developer, I create innovative digital experiences that bridge the gap between 
+                        user needs and technical solutions. I'm also an active IEEE published author, contributing to the advancement 
+                        of smart technologies and machine learning applications.
+                    </p>
+                    <div class="grid grid-cols-2 gap-4 mt-8">
+                        <div class="text-center p-4 glass-effect rounded-lg">
+                            <div class="text-2xl sm:text-3xl font-bold gradient-text">8.8</div>
+                            <div class="text-gray-600 text-sm sm:text-base">GPA</div>
+                        </div>
+                        <div class="text-center p-4 glass-effect rounded-lg">
+                            <div class="text-2xl sm:text-3xl font-bold gradient-text">0-6</div>
+                            <div class="text-gray-600 text-sm sm:text-base">Months Experience</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="relative order-1 md:order-2">
+                    <div class="w-full h-64 sm:h-96 glass-effect rounded-2xl flex items-center justify-center">
+                        <img src="/static/profile.jpg" alt="Profile Picture" class="w-24 h-24 sm:w-40 sm:h-40 md:w-56 md:h-56 rounded-full object-cover border-4 border-white shadow-lg max-w-full max-h-full mx-auto" style="background: #e5e7eb;" />
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Skills Section -->
+    <section id="skills" class="section">
+        <div class="max-w-6xl mx-auto px-4">
+            <h2 class="text-3xl sm:text-4xl font-bold gradient-text text-center mb-8 sm:mb-12">Skills & Expertise</h2>
+            <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+                <div class="skill-card p-6 glass-effect rounded-xl">
+                    <h3 class="text-xl font-semibold mb-4 gradient-text">Programming & Tools</h3>
+                    <div class="flex flex-wrap gap-2">
+                        <span class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">Python</span>
+                        <span class="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm">Kotlin</span>
+                        <span class="px-3 py-1 bg-red-100 text-red-800 rounded-full text-sm">Angular</span>
+                        <span class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">JSON</span>
+                    </div>
+                </div>
+                
+                <div class="skill-card p-6 glass-effect rounded-xl">
+                    <h3 class="text-xl font-semibold mb-4 gradient-text">Design & UX</h3>
+                    <div class="flex flex-wrap gap-2">
+                        <span class="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm">Figma</span>
+                        <span class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">UI/UX Design</span>
+                        <span class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">Wireframing</span>
+                        <span class="px-3 py-1 bg-orange-100 text-orange-800 rounded-full text-sm">Prototyping</span>
+                    </div>
+                </div>
+                
+                <div class="skill-card p-6 glass-effect rounded-xl">
+                    <h3 class="text-xl font-semibold mb-4 gradient-text">Tools & Software</h3>
+                    <div class="flex flex-wrap gap-2">
+                        <span class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">MS Office</span>
+                        <span class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">Social Media Management</span>
+                        <span class="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm">Market Research</span>
+                    </div>
+                </div>
+                
+                <div class="skill-card p-6 glass-effect rounded-xl">
+                    <h3 class="text-xl font-semibold mb-4 gradient-text">Soft Skills</h3>
+                    <div class="flex flex-wrap gap-2">
+                        <span class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">Communication</span>
+                        <span class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">Leadership</span>
+                        <span class="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm">Event Coordination</span>
+                        <span class="px-3 py-1 bg-orange-100 text-orange-800 rounded-full text-sm">Stakeholder Management</span>
+                        <span class="px-3 py-1 bg-red-100 text-red-800 rounded-full text-sm">Cross-Functional Collaboration</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Projects Section -->
+    <section id="projects" class="section">
+        <div class="max-w-6xl mx-auto px-4">
+            <h2 class="text-3xl sm:text-4xl font-bold gradient-text text-center mb-8 sm:mb-12">Featured Projects</h2>
+            <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+                <div class="project-card p-6 glass-effect rounded-xl">
+                    <div class="w-full h-48 bg-gradient-to-br from-blue-400 to-purple-500 rounded-lg mb-4 flex items-center justify-center">
+                        <div class="text-white text-4xl">📧</div>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-2">Business Enquiry Email Parsing Bot</h3>
+                    <p class="text-gray-600 mb-4">Automated email parsing system that boosted workflow efficiency by 75%</p>
+                    <div class="flex flex-wrap gap-2 mb-4">
+                        <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs">Python</span>
+                        <span class="px-2 py-1 bg-green-100 text-green-800 rounded text-xs">JSON</span>
+                        <span class="px-2 py-1 bg-orange-100 text-orange-800 rounded text-xs">Automation</span>
+                    </div>
+                    <div class="text-sm text-gray-500 mb-4">2024</div>
+                    <button class="w-full py-2 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-lg hover:shadow-lg transition-all duration-300">
+                        View Project
+                    </button>
+                </div>
+                
+                <div class="project-card p-6 glass-effect rounded-xl">
+                    <div class="w-full h-48 bg-gradient-to-br from-green-400 to-blue-500 rounded-lg mb-4 flex items-center justify-center">
+                        <div class="text-white text-4xl">🏗️</div>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-2">KSN Construction Company Website</h3>
+                    <p class="text-gray-600 mb-4">Designed customer-facing web platform to enhance trust and visibility</p>
+                    <div class="flex flex-wrap gap-2 mb-4">
+                        <span class="px-2 py-1 bg-red-100 text-red-800 rounded text-xs">Angular</span>
+                        <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs">UI/UX Design</span>
+                        <span class="px-2 py-1 bg-green-100 text-green-800 rounded text-xs">Web Development</span>
+                    </div>
+                    <div class="text-sm text-gray-500 mb-4">2023</div>
+                    <button class="w-full py-2 bg-gradient-to-r from-green-500 to-blue-500 text-white rounded-lg hover:shadow-lg transition-all duration-300">
+                        View Project
+                    </button>
+                </div>
+                
+                <div class="project-card p-6 glass-effect rounded-xl">
+                    <div class="w-full h-48 bg-gradient-to-br from-purple-400 to-pink-500 rounded-lg mb-4 flex items-center justify-center">
+                        <div class="text-white text-4xl">🛡️</div>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-2">IoT Safety Device for Women & Children</h3>
+                    <p class="text-gray-600 mb-4">Engineered a smart safety device using IoT technology to improve user safety</p>
+                    <div class="flex flex-wrap gap-2 mb-4">
+                        <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs">IoT</span>
+                        <span class="px-2 py-1 bg-orange-100 text-orange-800 rounded text-xs">Hardware</span>
+                        <span class="px-2 py-1 bg-green-100 text-green-800 rounded text-xs">Safety Technology</span>
+                    </div>
+                    <div class="text-sm text-gray-500 mb-4">2023</div>
+                    <button class="w-full py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg hover:shadow-lg transition-all duration-300">
+                        View Project
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Experience Section -->
+    <section id="experience" class="section">
+        <div class="max-w-4xl mx-auto px-4">
+            <h2 class="text-3xl sm:text-4xl font-bold gradient-text text-center mb-8 sm:mb-12">Professional Experience</h2>
+            <div class="space-y-6">
+                <div class="p-6 glass-effect rounded-xl">
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4">
+                        <h3 class="text-xl font-semibold text-gray-800">Central Metro Railway Ltd. (CMRL)</h3>
+                        <span class="text-sm text-gray-500 mt-2 sm:mt-0">0-6 months</span>
+                    </div>
+                    <p class="text-lg font-medium text-gray-700 mb-2">UI/UX Designer & Kotlin Developer</p>
+                    <p class="text-gray-600 mb-4">UI redesign, Kotlin development, cross-team communication</p>
+                    <div class="flex flex-wrap gap-2">
+                        <span class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">UI/UX Design</span>
+                        <span class="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm">Kotlin</span>
+                        <span class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">Cross-Team Communication</span>
+                    </div>
+                </div>
+                
+                <div class="p-6 glass-effect rounded-xl">
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4">
+                        <h3 class="text-xl font-semibold text-gray-800">Vikatan</h3>
+                        <span class="text-sm text-gray-500 mt-2 sm:mt-0">0-6 months</span>
+                    </div>
+                    <p class="text-lg font-medium text-gray-700 mb-2">UX Designer & Digital Strategist</p>
+                    <p class="text-gray-600 mb-4">UX optimization, digital strategy, ad automation</p>
+                    <div class="flex flex-wrap gap-2">
+                        <span class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">UX Design</span>
+                        <span class="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm">Digital Strategy</span>
+                        <span class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">Ad Automation</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Publications Section -->
+    <section id="publications" class="section">
+        <div class="max-w-4xl mx-auto px-4">
+            <h2 class="text-3xl sm:text-4xl font-bold gradient-text text-center mb-8 sm:mb-12">Publications</h2>
+            <div class="space-y-6">
+                <div class="p-6 glass-effect rounded-xl">
+                    <h3 class="text-xl font-semibold mb-2">Smartwatch-Powered Vehicle Navigation On Unmapped Terrain</h3>
+                    <p class="text-gray-600 mb-2">IEEE - 2024 Third International Conference on Smart Technologies and Systems for Next Generation Computing (ICSTSN) • 2024</p>
+                    <p class="text-sm text-gray-500">DOI: 10.1109/ICSTSN61422.2024.10670946</p>
+                    <div class="mt-4">
+                        <span class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">Smartwatch</span>
+                        <span class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">Navigation</span>
+                        <span class="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm">IEEE</span>
+                    </div>
+                </div>
+                
+                <div class="p-6 glass-effect rounded-xl">
+                    <h3 class="text-xl font-semibold mb-2">Mental Health Harmony: Insights from the Machine Learning Frontier</h3>
+                    <p class="text-gray-600 mb-2">IEEE • 2024</p>
+                    <p class="text-sm text-gray-500">IEEE Publication</p>
+                    <div class="mt-4">
+                        <span class="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm">Mental Health</span>
+                        <span class="px-3 py-1 bg-orange-100 text-orange-800 rounded-full text-sm">Machine Learning</span>
+                        <span class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">IEEE</span>
+                    </div>
+                </div>
+                
+                <div class="p-6 glass-effect rounded-xl">
+                    <h3 class="text-xl font-semibold mb-2">Detection of Potholes Using CNN</h3>
+                    <p class="text-gray-600 mb-2">EasyChair Publications • 2023</p>
+                    <p class="text-sm text-gray-500">EasyChair Publication</p>
+                    <div class="mt-4">
+                        <span class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">CNN</span>
+                        <span class="px-3 py-1 bg-orange-100 text-orange-800 rounded-full text-sm">Computer Vision</span>
+                        <span class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">EasyChair</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Contact Section -->
+    <section id="contact" class="section">
+        <div class="max-w-4xl mx-auto text-center px-4">
+            <h2 class="text-3xl sm:text-4xl font-bold gradient-text mb-8 sm:mb-12">Let's Connect</h2>
+            <p class="text-lg sm:text-xl text-gray-600 mb-6 sm:mb-8">
+                I'm always interested in new opportunities and collaborations in AI, robotics, and technology.
+            </p>
+            <div class="grid sm:grid-cols-2 gap-6 sm:gap-8 mb-6 sm:mb-8">
+                <div class="p-6 glass-effect rounded-xl">
+                    <div class="text-3xl mb-4">📧</div>
+                    <h3 class="text-lg font-semibold mb-2">Email</h3>
+                    <p class="text-gray-600">harshithavatturi@gmail.com</p>
+                </div>
+                <div class="p-6 glass-effect rounded-xl">
+                    <div class="text-3xl mb-4">📱</div>
+                    <h3 class="text-lg font-semibold mb-2">Phone</h3>
+                    <p class="text-gray-600">+91 8680005999</p>
+                </div>
+                <div class="p-6 glass-effect rounded-xl">
+                    <div class="text-3xl mb-4">💼</div>
+                    <h3 class="text-lg font-semibold mb-2">LinkedIn</h3>
+                    <p class="text-gray-600">linkedin.com/in/vatturiharshitha</p>
+                </div>
+                <div class="p-6 glass-effect rounded-xl">
+                    <div class="text-3xl mb-4">📍</div>
+                    <h3 class="text-lg font-semibold mb-2">Location</h3>
+                    <p class="text-gray-600">Chennai, India</p>
+                </div>
+            </div>
+            <div class="flex justify-center space-x-6">
+                <a href="#" class="p-4 glass-effect rounded-full hover:shadow-lg transition-all duration-300">
+                    <div class="text-2xl">🐙</div>
+                </a>
+                <a href="#" class="p-4 glass-effect rounded-full hover:shadow-lg transition-all duration-300">
+                    <div class="text-2xl">🐦</div>
+                </a>
+                <a href="#" class="p-4 glass-effect rounded-full hover:shadow-lg transition-all duration-300">
+                    <div class="text-2xl">📚</div>
+                </a>
+            </div>
+        </div>
+    </section>
+    
+    <!-- JavaScript -->
+    <script>
+        // Initialize Three.js Scene
+        let scene, camera, renderer, particles;
+        
+        function initThreeJS() {
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setClearColor(0x000000, 0);
+            document.getElementById('canvas-container').appendChild(renderer.domElement);
+            
+            // Create particle system
+            const geometry = new THREE.BufferGeometry();
+            const particleCount = 1000;
+            const positions = new Float32Array(particleCount * 3);
+            
+            for (let i = 0; i < particleCount * 3; i += 3) {
+                positions[i] = (Math.random() - 0.5) * 20;
+                positions[i + 1] = (Math.random() - 0.5) * 20;
+                positions[i + 2] = (Math.random() - 0.5) * 20;
+            }
+            
+            geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            
+            const material = new THREE.PointsMaterial({
+                color: 0x667eea,
+                size: 0.05,
+                transparent: true,
+                opacity: 0.6
+            });
+            
+            particles = new THREE.Points(geometry, material);
+            scene.add(particles);
+            
+            camera.position.z = 5;
+            
+            animate();
+        }
+        
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            particles.rotation.x += 0.001;
+            particles.rotation.y += 0.002;
+            
+            renderer.render(scene, camera);
+        }
+        
+        // Smooth scrolling
+        function smoothScroll(target) {
+            const element = document.getElementById(target);
+            element.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start'
+            });
+        }
+        
+        // Navigation dots
+        document.querySelectorAll('.nav-dot').forEach(dot => {
+            dot.addEventListener('click', () => {
+                const section = dot.getAttribute('data-section');
+                smoothScroll(section);
+                
+                // Update active dot
+                document.querySelectorAll('.nav-dot').forEach(d => d.classList.remove('active'));
+                dot.classList.add('active');
+            });
+        });
+        
+        // Intersection Observer for navigation dots
+        const observerOptions = {
+            threshold: 0.5
+        };
+        
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const sectionId = entry.target.id;
+                    document.querySelectorAll('.nav-dot').forEach(dot => {
+                        dot.classList.remove('active');
+                        if (dot.getAttribute('data-section') === sectionId) {
+                            dot.classList.add('active');
+                        }
+                    });
+                }
+            });
+        }, observerOptions);
+        
+        document.querySelectorAll('section').forEach(section => {
+            observer.observe(section);
+        });
+        
+        // GSAP Animations
+        gsap.from('.typewriter', {
+            duration: 2,
+            opacity: 0,
+            y: 50,
+            ease: 'power2.out'
+        });
+        
+        gsap.from('.skill-card', {
+            duration: 1,
+            opacity: 0,
+            y: 30,
+            stagger: 0.1,
+            ease: 'power2.out',
+            scrollTrigger: {
+                trigger: '#skills',
+                start: 'top 80%'
+            }
+        });
+        
+        gsap.from('.project-card', {
+            duration: 1,
+            opacity: 0,
+            y: 30,
+            stagger: 0.2,
+            ease: 'power2.out',
+            scrollTrigger: {
+                trigger: '#projects',
+                start: 'top 80%'
+            }
+        });
+        
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+        
+        // Mobile menu functionality
+        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
+        const closeMenu = document.getElementById('close-menu');
+        
+        mobileMenuBtn.addEventListener('click', () => {
+            mobileMenu.classList.remove('hidden');
+        });
+        
+        closeMenu.addEventListener('click', () => {
+            mobileMenu.classList.add('hidden');
+        });
+        
+        // Close menu when clicking on a link
+        document.querySelectorAll('#mobile-menu a').forEach(link => {
+            link.addEventListener('click', () => {
+                mobileMenu.classList.add('hidden');
+            });
+        });
+        
+        // Close menu when clicking outside
+        mobileMenu.addEventListener('click', (e) => {
+            if (e.target === mobileMenu) {
+                mobileMenu.classList.add('hidden');
+            }
+        });
+        
+        // Initialize everything when page loads
+        window.addEventListener('load', () => {
+            initThreeJS();
+        });
+    </script>
+</body>
+</html> 
